@@ -1,0 +1,21 @@
+# Definindo o nome do cluster
+cluster.name: "docker-cluster"
+
+# Definindo o nome do nó
+node.name: "node-1"
+
+# Definindo os caminhos para os dados e logs do Elasticsearch
+path.data: /usr/share/elasticsearch/data
+path.logs: /var/log/elasticsearch
+
+# Configuração da rede
+network.host: 0.0.0.0  # Permite que o Elasticsearch aceite conexões externas
+http.port: 9200  # Porta para requisições HTTP (ex: REST APIs)
+
+# Configuração para o modo de descoberta (single-node porque é um único nó)
+discovery.type: single-node
+
+# Habilitando a segurança do X-Pack
+xpack.security.enabled: true
+
+# Outras configurações relacionadas a memória e JVM podem ser definidas aqui, mas essas são as básicas para rodar o Elasticsearch no Docker
