@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+    environment {
+    DOCKERHUB_CREDENTIALS = credentials('jk-dh-tk')
+}
     stages {
         stage('SCM Checkout') {
             steps {
@@ -11,6 +13,12 @@ pipeline {
         stage('Build Docker image') {
     steps {
         sh 'docker build -f Demanda3/Dockerfile -t pkdu14/webapp:$BUILD_NUMBER .'
+            }
+        }
+
+        stage('Login to Docker Hub') {
+    steps {
+        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
             }
         }
     }
