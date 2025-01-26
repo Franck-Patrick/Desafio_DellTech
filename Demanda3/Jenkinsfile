@@ -1,69 +1,84 @@
 pipeline {
-   agent any
-   environment {
-       DOCKERHUB_CREDENTIALS = credentials('jk-dh-tk')
-   }
+    agent any
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('jk-dh-tk')
+    }
 
-   stages {
-       stage('SCM Checkout') {
-           steps {
-               git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
-           }
-       }
+    stages {
+        stage('SCM Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+            }
+        }
 
-       stage('Build Docker Image') {
-           steps {
-               sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} -f Demanda3/Dockerfile Demanda3/'
-           }
-       }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} -f Demanda3/Dockerfile Demanda3/'
+                }
+            }
+        }
 
-       stage('Login to Docker Hub') {
-           steps {
-               sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-           }
-       }
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    // Login no Docker Hub com as credenciais
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                }
+            }
+        }
 
-       stage('Push Image') {
-           steps {
-               sh 'docker push pkdu14/webapp:${BUILD_NUMBER}'
-           }
-       }
+        stage('Push Image') {
+            steps {
+                script {
+                    // Push da imagem gerada para o Docker Hub
+                    sh 'docker push pkdu14/webapp:${BUILD_NUMBER}'
+                }
+            }
+        }
 
-       stage('Deploy Application') {
-           steps {
-               script {
-                   sh '''
-                   # Verifica se existe um contêiner rodando com o nome "webapp_ctr" e o para
-                   if [ "$(docker ps -q -f name=webapp_ctr)" ]; then
-                       echo "Parando e removendo o contêiner existente..."
-                       docker stop webapp_ctr || true
-                       docker rm webapp_ctr || true
-                   fi
+        stage('Deploy Application') {
+            steps {
+                script {
+                    // Script para parar e remover o contêiner existente, se houver, e iniciar o novo
+                    sh '''
+                    # Verifica se existe um contêiner rodando com o nome "webapp_ctr" e o para
+                    if [ "$(docker ps -q -f name=webapp_ctr)" ]; then
+                        echo "Parando e removendo o contêiner existente..."
+                        docker stop webapp_ctr || true
+                        docker rm webapp_ctr || true
+                    fi
 
-                   # Executa o novo contêiner na porta 3000
-                   echo "Iniciando o novo contêiner..."
-                   docker run --rm -d -p 8084:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
-                   '''
-               }
-           }
-       }
+                    # Executa o novo contêiner na porta 3000
+                    echo "Iniciando o novo contêiner..."
+                    docker run --rm -d -p 8084:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
 
-       stage('Execute Commands in Container') {
-           steps {
-               script {
-                   sh '''
-                   # Executa um comando genérico dentro do container
-                   docker exec webapp_ctr echo "Executing commands inside the container"
-                   docker exec webapp_ctr python -m SimpleHTTPServer 8000
-                   '''
-               }
-           }
-       }
-   }
+        stage('Execute Commands in Container') {
+            steps {
+                script {
+                    // Executa comandos dentro do contêiner após ser iniciado
+                    sh '''
+                    # Executa um comando genérico dentro do container
+                    docker exec webapp_ctr echo "Executando comandos dentro do contêiner"
+                    
+                    # Usando o Python para iniciar o servidor na porta 8000 dentro do contêiner
+                    docker exec webapp_ctr python -m SimpleHTTPServer 8000
+                    '''
+                }
+            }
+        }
+    }
 
-   post {
-       always {
-           sh 'docker logout'
-       }
-   }
+    post {
+        always {
+            script {
+                // Logout do Docker Hub após as operações
+                sh 'docker logout'
+            }
+        }
+    }
 }
