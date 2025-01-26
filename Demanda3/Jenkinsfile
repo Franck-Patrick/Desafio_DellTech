@@ -39,7 +39,7 @@ pipeline {
                 fi
 
                 # Executa o novo contêiner
-                docker run --rm -d -p 8083:80 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
+                docker run --rm -d -p 8084:80 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
                 '''
             }
         }
