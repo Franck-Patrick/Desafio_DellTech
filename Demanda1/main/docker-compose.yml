@@ -6,7 +6,7 @@ services:
       context: ./api
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8089:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/learning
       SPRING_DATASOURCE_USERNAME: postgres
