@@ -29,7 +29,7 @@ pipeline {
            }
        }
 
-      stage('Deploy Application') {
+     stage('Deploy Application') {
    steps {
        script {
            sh '''
@@ -43,10 +43,15 @@ pipeline {
            # Executa o novo contêiner na porta 3000
            echo "Iniciando o novo contêiner..."
            docker run --rm -d -p 8084:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
+
+           # Inicia o servidor HTTP em uma porta diferente (8000)
+           echo "Iniciando o servidor HTTP dentro do contêiner..."
+           docker exec webapp_ctr python -m SimpleHTTPServer 8000
            '''
        }
    }
 }
+
 
        stage('Execute Commands in Container') {
            steps {
