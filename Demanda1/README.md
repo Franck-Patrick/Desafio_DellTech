@@ -29,3 +29,4 @@
 # caso esteja em psql digite exit.
 # ainda em main, realize o comando: docker-compose down, e em seguida o comando docker-compose up -d
 # refaça os passos para entrar no banco e veja que o empregado que você criou, ainda estará lá.
+# Ao finalizar, não se esqueça de rodar docker-compose down para não ficar com muita informação.
