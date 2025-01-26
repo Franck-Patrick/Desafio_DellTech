@@ -1,68 +1,44 @@
 pipeline {
     agent any
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('jk-dh-tk')
-    }
 
     stages {
-        stage('SCM Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
-            }
-        }
-
-        stage('Build Docker Image') {
+        stage('Clone Repository') {
             steps {
                 script {
-                    sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} -f Demanda3/Dockerfile Demanda3/'
+                    // Clonando o repositório público do GitHub
+                    git 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
                 }
             }
         }
 
-        stage('Login to Docker Hub') {
+        stage('Build') {
             steps {
                 script {
-                    // Login no Docker Hub com as credenciais
-                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    // Executando um container Docker dentro da pipeline
+                    docker.image('ubuntu:latest').inside {
+                        // Executando um comando genérico dentro do container
+                        sh 'echo "Executando script dentro do container"'
+                    }
                 }
             }
         }
 
-        stage('Push Image') {
+        stage('Deploy') {
             steps {
                 script {
-                    // Push da imagem gerada para o Docker Hub
-                    sh 'docker push pkdu14/webapp:${BUILD_NUMBER}'
+                    // Executando outro container Docker na etapa de deploy
+                    docker.image('nginx:latest').run('-d -p 8080:80')
+                    echo 'Container de deploy (nginx) executado com sucesso!'
                 }
             }
         }
+    }
 
-        stage('Deploy Application') {
-            steps {
-                script {
-                    // Script para parar e remover o contêiner existente, se houver, e iniciar o novo
-                    sh '''
-                    # Verifica se existe um contêiner rodando com o nome "webapp_ctr" e o para
-                    if [ "$(docker ps -q -f name=webapp_ctr)" ]; then
-                        echo "Parando e removendo o contêiner existente..."
-                        docker stop webapp_ctr || true
-                        docker rm webapp_ctr || true
-                    fi
-
-                    # Executa o novo contêiner na porta 3000
-                    echo "Iniciando o novo contêiner..."
-                    docker run --rm -d -p 8084:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
-                    '''
-                }
-            }
-        }
-        
     post {
         always {
-            script {
-                // Logout do Docker Hub após as operações
-                sh 'docker logout'
-            }
+            // Limpando containers ao final
+            sh 'docker ps -q | xargs docker stop || true'
+            sh 'docker ps -aq | xargs docker rm || true'
         }
     }
 }
