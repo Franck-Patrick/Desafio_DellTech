@@ -13,5 +13,11 @@ pipeline {
                 sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} -f Demanda3/Dockerfile Demanda3/'
             }
         }
+       
+      stage('Login to Docker Hub') {
+    steps {
+        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
     }
 }
