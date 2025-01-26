@@ -1,11 +1,14 @@
 pipeline {
     agent any
 
+    tools {
+        docker 'docker'  // Nome da ferramenta configurada no Jenkins (caso o Docker esteja instalado em um caminho específico)
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
                 script {
-                    // Clonando a branch 'main' do repositório
                     git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
                 }
             }
@@ -33,7 +36,6 @@ pipeline {
 
     post {
         always {
-            // Limpando containers ao final
             sh 'docker ps -q | xargs docker stop || true'
             sh 'docker ps -aq | xargs docker rm || true'
         }
