@@ -32,8 +32,14 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 sh '''
-                docker stop --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
-                docker run --rm -d -p 3000:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
+                # Verifica se o contêiner já existe e o para
+                if [ $(docker ps -aq -f name=webapp_ctr) ]; then
+                    docker stop webapp_ctr
+                    docker rm webapp_ctr
+                fi
+
+                # Executa o novo contêiner
+                docker run --rm -d -p 8083:80 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
                 '''
             }
         }
