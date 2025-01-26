@@ -31,8 +31,21 @@ pipeline {
 stage('Deploy Application') {
     steps {
         sh '''
+            docker stop webapp_ctr
             docker run -d -p 3000:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
            '''
+            }
+        }
+stage('Run Random Command in Container') {
+            steps {
+                script {
+                    // Exemplo de comando aleatório, substitua por um comando que você deseja rodar
+                    def commands = ['ls', 'pwd', 'echo Hello World']
+                    def randomCommand = commands[new Random().nextInt(commands.size())]
+                    
+                    // Executando o comando aleatório no container
+                    sh "docker exec webapp_ctr ${randomCommand}"
+                }
             }
         }
     }
