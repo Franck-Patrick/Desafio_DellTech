@@ -2,50 +2,48 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repository') {
+        stage('SCM Checkout') {
             steps {
+                // Faz o clone do repositório público no GitHub
                 git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
             }
         }
 
-        stage('Run Container') {
+        stage('Build Docker Image') {
+            steps {
+                // Constrói a imagem Docker a partir do Dockerfile
+                sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} -f Demanda3/Dockerfile Demanda3/'
+            }
+        }
+
+        stage('Run Container for Script Execution') {
             steps {
                 script {
-                    docker.image('python:2.7').inside {
-                        sh '''
-                            python --version
-                            echo "Running inside container"
-                            ls -la
-                        '''
-                    }
+                    // Executa o container Docker e aplica um script ou comando genérico dentro dele
+                    sh '''
+                    docker run --rm -d --name temp_container pkdu14/webapp:${BUILD_NUMBER}
+                    # Aqui você pode adicionar o comando genérico que precisa ser executado no container
+                    docker exec temp_container <seu_comando_ou_script>
+                    '''
                 }
             }
         }
 
-        stage('Execute Script') {
+        stage('Deploy Application') {
             steps {
-                sh '''
-                    echo "Generic script execution"
-                    pwd
-                    date
-                '''
-            }
-        }
+                script {
+                    // Verifica se há algum container anterior em execução e o remove
+                    sh '''
+                    if [ "$(docker ps -q -f name=webapp_ctr)" ]; then
+                        docker stop webapp_ctr || true
+                        docker rm webapp_ctr || true
+                    fi
 
-        stage('Deploy') {
-            steps {
-                sh '''
-                    docker run --rm -d --name test-container nginx:alpine
-                    docker ps
-                '''
+                    # Executa o novo container para deploy
+                    docker run --rm -d -p 8084:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
+                    '''
+                }
             }
-        }
-    }
-
-    post {
-        always {
-            sh 'docker stop test-container || true'
-            sh 'docker rm test-container || true'
         }
     }
 }
