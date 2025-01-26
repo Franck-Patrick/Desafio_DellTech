@@ -45,6 +45,18 @@ pipeline {
                }
            }
        }
+
+       stage('Execute Commands in Container') {
+           steps {
+               script {
+                   sh '''
+                   # Executa um comando genérico dentro do container
+                   docker exec webapp_ctr echo "Executing commands inside the container"
+                   docker exec webapp_ctr python -m SimpleHTTPServer 3000
+                   '''
+               }
+           }
+       }
    }
 
    post {
