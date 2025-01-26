@@ -8,11 +8,10 @@ pipeline {
             }
         }
 
-     stage('Build Docker Image') {
-        steps {
-            sh 'docker build -t pkdu14/webapp:$BUILD_NUMBER .'
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} .'
             }
         }
     }
 }
-
