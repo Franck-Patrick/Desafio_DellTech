@@ -1,43 +1,11 @@
 pipeline {
     agent any
 
-    tools {
-        docker 'docker'  // Nome da ferramenta configurada no Jenkins (caso o Docker esteja instalado em um caminho específico)
-    }
-
     stages {
-        stage('Clone Repository') {
+        stage('SCM Checkout') {
             steps {
-                script {
-                    git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
-                }
+                git branch: 'main', credentialsId: 'jk-gh-tk', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
             }
-        }
-
-        stage('Build') {
-            steps {
-                script {
-                    // Construindo a imagem Docker com base no Dockerfile fornecido
-                    docker.build('meu-app-python', '-f Dockerfile .')
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    // Executando o container Docker do app Python na etapa de deploy
-                    docker.image('meu-app-python').run('-d -p 3000:3000')
-                    echo 'Container de deploy (Python HTTP Server) executado com sucesso!'
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            sh 'docker ps -q | xargs docker stop || true'
-            sh 'docker ps -aq | xargs docker rm || true'
         }
     }
 }
