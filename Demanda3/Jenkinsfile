@@ -25,17 +25,15 @@ pipeline {
 
         stage('Push Image') {
             steps {
-                sh 'docker push pkdu14/webapp:$BUILD_NUMBER'
+                sh 'docker push pkdu14/webapp:${BUILD_NUMBER}'
             }
         }
 
         stage('Deploy Application') {
             steps {
                 sh '''
-                docker pull pkdu14/webapp:${BUILD_NUMBER}
-                docker stop webapp || true
-                docker rm webapp || true
-                docker run -d --name webapp -p 8083:80 pkdu14/webapp:${BUILD_NUMBER}
+                docker stop --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
+                docker run --rm -d -p 3000:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
                 '''
             }
         }
