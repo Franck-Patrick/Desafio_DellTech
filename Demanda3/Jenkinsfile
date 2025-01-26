@@ -16,18 +16,28 @@ pipeline {
                 sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} -f Demanda3/Dockerfile Demanda3/'
             }
         }
-       
-      stage('Login to Docker Hub') {
-    steps {
-        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+
+        stage('Login to Docker Hub') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
             }
         }
-        
-        stage('Push Image') {
-    steps {
-        sh 'docker push pkdu14/webapp:$BUILD_NUMBER'
-    }
-}
 
+        stage('Push Image') {
+            steps {
+                sh 'docker push pkdu14/webapp:$BUILD_NUMBER'
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                sh '''
+                docker pull pkdu14/webapp:${BUILD_NUMBER}
+                docker stop webapp || true
+                docker rm webapp || true
+                docker run -d --name webapp -p 8083:80 pkdu14/webapp:${BUILD_NUMBER}
+                '''
+            }
+        }
     }
 }
