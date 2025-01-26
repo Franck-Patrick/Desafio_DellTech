@@ -14,11 +14,8 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Executando um container Docker dentro da pipeline
-                    docker.image('ubuntu:latest').inside {
-                        // Executando um comando genérico dentro do container
-                        sh 'echo "Executando script dentro do container"'
-                    }
+                    // Construindo a imagem Docker com base no Dockerfile fornecido
+                    docker.build('meu-app-python', '-f Dockerfile .')
                 }
             }
         }
@@ -26,9 +23,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Executando outro container Docker na etapa de deploy
-                    docker.image('nginx:latest').run('-d -p 8080:80')
-                    echo 'Container de deploy (nginx) executado com sucesso!'
+                    // Executando o container Docker do app Python na etapa de deploy
+                    docker.image('meu-app-python').run('-d -p 3000:3000')
+                    echo 'Container de deploy (Python HTTP Server) executado com sucesso!'
                 }
             }
         }
