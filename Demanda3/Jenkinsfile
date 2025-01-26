@@ -5,8 +5,8 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    // Clonando o repositório público do GitHub
-                    git 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+                    // Clonando a branch 'main' do repositório
+                    git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
                 }
             }
         }
