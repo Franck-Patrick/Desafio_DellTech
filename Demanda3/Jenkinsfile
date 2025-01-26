@@ -1,55 +1,51 @@
 pipeline {
-   agent any
-   environment {
-       DOCKERHUB_CREDENTIALS = credentials('jk-dh-tk')
-   }
+    agent any
 
-   stages {
-       stage('SCM Checkout') {
-           steps {
-               git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
-           }
-       }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+            }
+        }
 
-       stage('Build Docker Image') {
-           steps {
-               sh 'docker build -t pkdu14/webapp:${BUILD_NUMBER} -f Demanda3/Dockerfile Demanda3/'
-           }
-       }
+        stage('Run Container') {
+            steps {
+                script {
+                    docker.image('python:2.7').inside {
+                        sh '''
+                            python --version
+                            echo "Running inside container"
+                            ls -la
+                        '''
+                    }
+                }
+            }
+        }
 
-       stage('Login to Docker Hub') {
-           steps {
-               sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-           }
-       }
+        stage('Execute Script') {
+            steps {
+                sh '''
+                    echo "Generic script execution"
+                    pwd
+                    date
+                '''
+            }
+        }
 
-       stage('Push Image') {
-           steps {
-               sh 'docker push pkdu14/webapp:${BUILD_NUMBER}'
-           }
-       }
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker run --rm -d --name test-container nginx:alpine
+                    docker ps
+                '''
+            }
+        }
+    }
 
-       stage('Deploy Application') {
-           steps {
-               script {
-                   sh '''
-                   # Verifica e remove containers existentes
-                   if [ "$(docker ps -q -f name=webapp_ctr)" ]; then
-                       docker stop webapp_ctr || true
-                       docker rm webapp_ctr || true
-                   fi
-
-                   # Executa o novo contêiner
-                   docker run --rm -d -p 8084:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
-                   '''
-               }
-           }
-       }
-   }
-
-   post {
-       always {
-           sh 'docker logout'
-       }
-   }
+    post {
+        always {
+            sh 'docker stop test-container || true'
+            sh 'docker rm test-container || true'
+        }
+    }
 }
