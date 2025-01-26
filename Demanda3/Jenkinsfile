@@ -9,8 +9,8 @@ pipeline {
         }
 
         stage('Build Docker image') {
-            steps {
-                sh 'docker build -t pkdu14/webapp:$BUILD_NUMBER .'
+    steps {
+        sh 'docker build -f Demanda3/Dockerfile -t pkdu14/webapp:$BUILD_NUMBER .'
             }
         }
     }
