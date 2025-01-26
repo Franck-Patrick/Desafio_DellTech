@@ -8,4 +8,12 @@ pipeline {
             }
         }
     }
+
+    stages {
+        stage('Build Docker Image') {
+            steps {
+                sh 'dcoker build -t pkdu14/webapp:$BUILD_NUMBER .'
+            }
+        }
+    }
 }
