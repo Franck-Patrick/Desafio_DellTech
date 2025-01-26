@@ -7,13 +7,12 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
             }
         }
-    }
 
-    stages {
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t pkdu14/webapp:$BUILD_NUMBER .'
+     stage('Build Docker Image') {
+        steps {
+            sh 'docker build -t pkdu14/webapp:$BUILD_NUMBER .'
             }
         }
     }
 }
+
