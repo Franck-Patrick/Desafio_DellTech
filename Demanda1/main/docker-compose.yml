@@ -3,27 +3,27 @@ version: '3.8'
 services:
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile
+      context: ./api # Caminho relativo onde o Dockerfile está localizado
+      dockerfile: Dockerfile # Nome do Dockerfile (opcional se for padrão)
     ports:
-      - "8089:8080"
+      - "8089:8080" # Porta mapeada: Host -> Container
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/learning
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: senha
     depends_on:
-      - postgres
+      - postgres # Aguarda o banco subir antes de iniciar a API
 
   postgres:
     image: postgres:15.4
     ports:
-      - "5432:5432"
+      - "2432:5432" # Porta padrão para PostgreSQL
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: senha
       POSTGRES_DB: learning
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data # Persistência dos dados do banco
 
 volumes:
-  postgres_data:
+  postgres_data: # Volume nomeado para armazenar dados do PostgreSQL
