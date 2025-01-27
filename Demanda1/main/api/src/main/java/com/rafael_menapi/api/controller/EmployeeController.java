@@ -1,4 +1,4 @@
-package com.rafael_menapi.api.controller;
+package com.patrick-menapi.api.controller;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.rafael_menapi.api.model.Employee;
-import com.rafael_menapi.api.service.EmployeeService;
+import com.patrick_menapi.api.model.Employee;
+import com.patrick_menapi.api.service.EmployeeService;
 
 
 @Tag(name = "Employee Endpoints")

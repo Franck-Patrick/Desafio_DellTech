@@ -1,8 +1,8 @@
-package com.rafael_menapi.api.service;
+package com.patrick_menapi.api.service;
 
 import java.util.List;
 
-import com.rafael_menapi.api.model.Employee;
+import com.patrick_menapi.api.model.Employee;
 
 
 public interface EmployeeService {  //aqui ficam todos os métodos de serviço relacionados aos verbos get post put e delete ligados ao controller

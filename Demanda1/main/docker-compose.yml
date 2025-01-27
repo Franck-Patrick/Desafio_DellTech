@@ -17,7 +17,7 @@ services:
   postgres:
     image: postgres:15.4
     ports:
-      - "2432:5432" # Porta padrão para PostgreSQL
+      - "5438:5432" # Porta padrão para PostgreSQL
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: senha

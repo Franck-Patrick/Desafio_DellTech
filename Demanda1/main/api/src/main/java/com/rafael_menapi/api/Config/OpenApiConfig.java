@@ -1,4 +1,4 @@
-package com.rafael_menapi.api.Config;
+package com.patrick_menapi.api.Config;
 
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;

@@ -1,4 +1,4 @@
-package com.rafael_menapi.api.exception;
+package com.patrick_menapi.api.exception;
 
 import java.util.LinkedHashMap;
 import java.util.List;

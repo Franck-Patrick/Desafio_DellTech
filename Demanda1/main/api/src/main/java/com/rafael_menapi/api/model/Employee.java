@@ -1,4 +1,4 @@
-package com.rafael_menapi.api.model;
+package com.patrick_menapi.api.model;
 
 
 import java.util.Objects;
