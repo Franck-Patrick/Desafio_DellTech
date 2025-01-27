@@ -15,8 +15,6 @@ Criar uma API RESTful utilizando a linguagem de programação de sua escolha (ex
 
 Certifique-se de que as seguintes ferramentas estejam instaladas:
 
-- **Maven Apache:** Necessário para buildar a aplicação (disponível para instalação via terminal no Linux ou pela web no Windows).
-- **Java (7+):** Requisito para rodar o Maven.
 - **Docker e Docker-Compose:** Essenciais para rodar os containers.
 
 ### Etapas
@@ -24,24 +22,9 @@ Certifique-se de que as seguintes ferramentas estejam instaladas:
 1. **Navegue para o diretório da API:**
 
    ```bash
-   cd Demanda1/main/api
+   cd Demanda1/main
    ```
-
-2. **Realize o build da aplicação:**
-
-   ```bash
-   mvn clean install -DskipTests
-   ```
-
-   Esse comando fará o build da aplicação Spring Boot, ignorando os testes automatizados do Maven.
-
-3. **Volte para o diretório principal:**
-
-   ```bash
-   cd ../
-   ```
-
-4. **Suba os containers utilizando o Docker Compose:**
+2. **Suba os containers utilizando o Docker Compose:**
 
    ```bash
    docker-compose up -d
@@ -49,7 +32,7 @@ Certifique-se de que as seguintes ferramentas estejam instaladas:
 
    > **Nota:** Certifique-se de verificar as portas utilizadas. Por exemplo, a porta `8080` frequentemente é usada pelo Jenkins. Neste caso, utilizamos `localhost:8089` para a API.
 
-5. **Verifique se os containers estão rodando:**
+3. **Verifique se os containers estão rodando:**
 
    ```bash
    docker ps
@@ -57,23 +40,23 @@ Certifique-se de que as seguintes ferramentas estejam instaladas:
 
    Os containers devem estar com o status `running` ou `up`.
 
-6. **Acesse a API via Swagger:**
+4. **Acesse a API via Swagger:**
    Abra o navegador e acesse: `http://localhost:8089/swagger-ui.html`
 
-7. **Teste as operações da API:**
+5. **Teste as operações da API:**
 
    - Use a rota `POST` para inserir dados de um novo empregado/funcionário.
 
-8. **Verifique os dados no banco de dados:**
+6. **Verifique os dados no banco de dados:**
 
-   - Certifique-se de ter um cliente PostgreSQL instalado, como o `psql` ou o DBeaver.
+   - Certifique-se de ter um cliente PostgreSQL instalado, como o `psql`, Dbeaver ou método GET ainda no navegador.
    - Para conectar-se ao banco via terminal:
      ```bash
-     psql -h localhost -p 5432 -U postgres -d learning
+     psql -h localhost -p 5438 -U postgres -d learning
      ```
    - As credenciais de acesso estão definidas no arquivo `docker-compose.yml`. A senha padrão para o banco é `senha` (não segura, mas adequada para fins de teste).
 
-9. **Visualize as tabelas e dados:**
+7. **Visualize as tabelas e dados:**
 
    - Liste as tabelas disponíveis:
      ```sql
@@ -84,7 +67,7 @@ Certifique-se de que as seguintes ferramentas estejam instaladas:
      SELECT * FROM tb_employees;
      ```
 
-10. **Teste a persistência dos dados:**
+8. **Teste a persistência dos dados:**
 
     - Saia do cliente PostgreSQL:
       ```bash
@@ -100,7 +83,7 @@ Certifique-se de que as seguintes ferramentas estejam instaladas:
       ```
     - Refaça os passos para acessar o banco e verifique se os dados persistem.
 
-11. **Finalize:**
+9. **Finalize:**
 
     - Após os testes, pare os containers para liberar recursos:
       ```bash
