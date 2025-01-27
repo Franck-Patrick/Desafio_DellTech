@@ -1,24 +1,11 @@
 pipeline {
     agent any
-    environment {
-    DOCKERHUB_CREDENTIALS = credentials('jk-dh-th')
-}
+
     stages {
         stage('SCM Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'jk-gh-tk', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+                git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
             }
         }
-        stage('Login to Docker Hub') {
-    steps {
-        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-    }
-}
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -f Demanda3/Dockerfile -t pkdu14/webapp:$BUILD_NUMBER .'
-            }
-        }       
     }
 }
