@@ -2,12 +2,14 @@ pipeline {
     agent any
 
     environment {
-        // Definindo variáveis de ambiente
-        DOCKER_IMAGE = 'node:16-alpine'
-        DEPLOY_IMAGE = 'nginx:alpine'
+        // Usando imagens mais simples e públicas
+        DOCKER_IMAGE = 'alpine:latest'
+        DEPLOY_IMAGE = 'httpd:alpine'
         GIT_REPO = 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
         CONTAINER_NAME = 'app-container'
         DEPLOY_CONTAINER = 'deploy-container'
+        // Adicione suas credenciais do Docker Hub aqui se necessário
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
     }
 
     stages {
@@ -23,26 +25,39 @@ pipeline {
             }
         }
 
-        stage('Build & Test in Docker') {
+        stage('Docker Login') {
+            steps {
+                // Login no Docker Hub se as credenciais estiverem configuradas
+                script {
+                    if (env.DOCKER_HUB_CREDENTIALS) {
+                        sh '''
+                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build & Test') {
             steps {
                 sh '''
                     # Remove container se já existir
                     docker rm -f ${CONTAINER_NAME} || true
                     
+                    # Pull da imagem explicitamente
+                    docker pull ${DOCKER_IMAGE}
+                    
                     # Executa o container
-                    docker run -d --name ${CONTAINER_NAME} ${DOCKER_IMAGE}
+                    docker run -d --name ${CONTAINER_NAME} ${DOCKER_IMAGE} sleep 300
                     
                     # Executa comandos no container
                     docker exec ${CONTAINER_NAME} /bin/sh -c "
-                        echo 'Node.js Version:'
-                        node --version
+                        echo 'Alpine Version:'
+                        cat /etc/alpine-release
                         
-                        echo 'NPM Version:'
-                        npm --version
+                        echo 'System Info:'
+                        uname -a
                     "
-                    
-                    # Remove o container após uso
-                    docker rm -f ${CONTAINER_NAME}
                 '''
             }
         }
@@ -50,8 +65,8 @@ pipeline {
         stage('Custom Script') {
             steps {
                 sh '''
-                    # Cria e executa container para script personalizado
-                    docker run --name ${CONTAINER_NAME} ${DOCKER_IMAGE} /bin/sh -c "
+                    # Usa o container existente para executar o script
+                    docker exec ${CONTAINER_NAME} /bin/sh -c "
                         echo 'Executando script personalizado...'
                         
                         # Criar arquivo de log
@@ -61,15 +76,10 @@ pipeline {
                         # Informações do sistema
                         echo 'Informações do sistema:' >> /tmp/execution_log.txt
                         uname -a >> /tmp/execution_log.txt
-                        
-                        cat /tmp/execution_log.txt
                     "
                     
                     # Copia o arquivo de log do container
                     docker cp ${CONTAINER_NAME}:/tmp/execution_log.txt .
-                    
-                    # Remove o container
-                    docker rm -f ${CONTAINER_NAME}
                 '''
                 
                 // Arquiva o log
@@ -82,6 +92,9 @@ pipeline {
                 sh '''
                     # Remove container de deploy anterior se existir
                     docker rm -f ${DEPLOY_CONTAINER} || true
+                    
+                    # Pull da imagem explicitamente
+                    docker pull ${DEPLOY_IMAGE}
                     
                     # Executa container de deploy
                     docker run -d --name ${DEPLOY_CONTAINER} -p 8080:80 ${DEPLOY_IMAGE}
@@ -106,6 +119,9 @@ pipeline {
                 docker rm -f ${DEPLOY_CONTAINER} || true
             '''
             cleanWs()
+            
+            // Logout do Docker Hub se estiver logado
+            sh 'docker logout || true'
         }
         success {
             echo 'Pipeline executada com sucesso!'
