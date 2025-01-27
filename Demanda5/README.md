@@ -64,6 +64,7 @@ docker-compose up -d
 - `http_requests_total`: Total de requisições HTTP por método, path e status
 - Métricas padrão do Node.js (memória, CPU, etc.)
 
+# Por favor, pule a parte de hospedagem, eu não consegui hospedar no render.
 ## Hospedagem
 
 Para hospedar em um serviço gratuito como o Render:
@@ -74,26 +75,17 @@ Para hospedar em um serviço gratuito como o Render:
 4. O Render irá automaticamente construir e implantar sua aplicação
 5. Lembre de colocar no Root Directory: Demanda5/
 
-## Expandindo o Monitoramento
+
+## Teste de Scrap
+
+1. Ir na aba de explore do Grafana
+2. Selecionar Queries
+3. em métricas browser rode `scrape_duration_seconds`
+
+## Caso deseje é possivel expandir o Monitoramento
 
 Para adicionar novas métricas:
 
 1. Adicione novos coletores no arquivo `app.js`
 2. Atualize o arquivo `prometheus.yml` se necessário
 3. Crie novos painéis no Grafana para visualizar as novas métricas
-
-## Troubleshooting
-
-- Verifique os logs dos containers: `docker-compose logs [service_name]`
-- Confirme se as portas estão corretamente expostas
-- Verifique se o Prometheus está conseguindo acessar o endpoint de métricas
-
-## Segurança
-
-- Altere a senha padrão do Grafana em produção
-- Configure SSL/TLS para conexões seguras
-- Implemente autenticação adequada para o ambiente de produção
-
-## Suporte
-
-Para questões e suporte, abra uma issue no repositório do projeto.
