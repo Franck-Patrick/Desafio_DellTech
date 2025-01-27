@@ -2,32 +2,25 @@ pipeline {
     agent any
 
     environment {
-        // Usando imagens mais simples e públicas
         DOCKER_IMAGE = 'alpine:latest'
         DEPLOY_IMAGE = 'httpd:alpine'
         GIT_REPO = 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
         CONTAINER_NAME = 'app-container'
         DEPLOY_CONTAINER = 'deploy-container'
-        // Adicione suas credenciais do Docker Hub aqui se necessário
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                // Limpa o workspace antes de clonar
                 cleanWs()
-                
-                // Clona seu repositório
                 echo "Clonando repositório: ${GIT_REPO}"
-                git branch: 'main',
-                    url: "${GIT_REPO}"
+                git branch: 'main', url: "${GIT_REPO}"
             }
         }
 
         stage('Docker Login') {
             steps {
-                // Login no Docker Hub se as credenciais estiverem configuradas
                 script {
                     if (env.DOCKER_HUB_CREDENTIALS) {
                         sh '''
@@ -40,88 +33,100 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh '''
-                    # Remove container se já existir
-                    docker rm -f ${CONTAINER_NAME} || true
-                    
-                    # Pull da imagem explicitamente
-                    docker pull ${DOCKER_IMAGE}
-                    
-                    # Executa o container
-                    docker run -d --name ${CONTAINER_NAME} ${DOCKER_IMAGE} sleep 300
-                    
-                    # Executa comandos no container
-                    docker exec ${CONTAINER_NAME} /bin/sh -c "
-                        echo 'Alpine Version:'
-                        cat /etc/alpine-release
-                        
-                        echo 'System Info:'
-                        uname -a
-                    "
-                '''
+                script {
+                    // Garantir que os comandos sejam executados dentro de um nó
+                    node {
+                        sh '''
+                            # Remove container se já existir
+                            docker rm -f ${CONTAINER_NAME} || true
+                            
+                            # Pull da imagem explicitamente
+                            docker pull ${DOCKER_IMAGE}
+                            
+                            # Executa o container
+                            docker run -d --name ${CONTAINER_NAME} ${DOCKER_IMAGE} sleep 300
+                            
+                            # Executa comandos no container
+                            docker exec ${CONTAINER_NAME} /bin/sh -c "
+                                echo 'Alpine Version:'
+                                cat /etc/alpine-release
+                                
+                                echo 'System Info:'
+                                uname -a
+                            "
+                        '''
+                    }
+                }
             }
         }
 
         stage('Custom Script') {
             steps {
-                sh '''
-                    # Usa o container existente para executar o script
-                    docker exec ${CONTAINER_NAME} /bin/sh -c "
-                        echo 'Executando script personalizado...'
-                        
-                        # Criar arquivo de log
-                        echo 'Pipeline executada em $(date)' > /tmp/execution_log.txt
-                        echo 'Repositório: Desafio_DellTech' >> /tmp/execution_log.txt
-                        
-                        # Informações do sistema
-                        echo 'Informações do sistema:' >> /tmp/execution_log.txt
-                        uname -a >> /tmp/execution_log.txt
-                    "
+                script {
+                    node {
+                        sh '''
+                            docker exec ${CONTAINER_NAME} /bin/sh -c "
+                                echo 'Executando script personalizado...'
+                                
+                                # Criar arquivo de log
+                                echo 'Pipeline executada em $(date)' > /tmp/execution_log.txt
+                                echo 'Repositório: Desafio_DellTech' >> /tmp/execution_log.txt
+                                
+                                # Informações do sistema
+                                echo 'Informações do sistema:' >> /tmp/execution_log.txt
+                                uname -a >> /tmp/execution_log.txt
+                            "
+                            
+                            # Copia o arquivo de log do container
+                            docker cp ${CONTAINER_NAME}:/tmp/execution_log.txt .
+                        '''
+                    }
                     
-                    # Copia o arquivo de log do container
-                    docker cp ${CONTAINER_NAME}:/tmp/execution_log.txt .
-                '''
-                
-                // Arquiva o log
-                archiveArtifacts artifacts: 'execution_log.txt', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'execution_log.txt', allowEmptyArchive: true
+                }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh '''
-                    # Remove container de deploy anterior se existir
-                    docker rm -f ${DEPLOY_CONTAINER} || true
-                    
-                    # Pull da imagem explicitamente
-                    docker pull ${DEPLOY_IMAGE}
-                    
-                    # Executa container de deploy
-                    docker run -d --name ${DEPLOY_CONTAINER} -p 8080:80 ${DEPLOY_IMAGE}
-                    
-                    # Verifica se o container está rodando
-                    docker ps | grep ${DEPLOY_CONTAINER}
-                    
-                    echo "Container de deploy iniciado com sucesso!"
-                    
-                    # Aguarda 10 segundos para garantir que o container iniciou
-                    sleep 10
-                '''
+                script {
+                    node {
+                        sh '''
+                            # Remove container de deploy anterior se existir
+                            docker rm -f ${DEPLOY_CONTAINER} || true
+                            
+                            # Pull da imagem explicitamente
+                            docker pull ${DEPLOY_IMAGE}
+                            
+                            # Executa container de deploy
+                            docker run -d --name ${DEPLOY_CONTAINER} -p 8080:80 ${DEPLOY_IMAGE}
+                            
+                            # Verifica se o container está rodando
+                            docker ps | grep ${DEPLOY_CONTAINER}
+                            
+                            echo "Container de deploy iniciado com sucesso!"
+                            
+                            # Aguarda 10 segundos para garantir que o container iniciou
+                            sleep 10
+                        '''
+                    }
+                }
             }
         }
     }
 
     post {
         always {
-            // Limpeza após a execução
-            sh '''
-                docker rm -f ${CONTAINER_NAME} || true
-                docker rm -f ${DEPLOY_CONTAINER} || true
-            '''
-            cleanWs()
-            
-            // Logout do Docker Hub se estiver logado
-            sh 'docker logout || true'
+            script {
+                node {
+                    sh '''
+                        docker rm -f ${CONTAINER_NAME} || true
+                        docker rm -f ${DEPLOY_CONTAINER} || true
+                    '''
+                    cleanWs()
+                    sh 'docker logout || true'
+                }
+            }
         }
         success {
             echo 'Pipeline executada com sucesso!'
