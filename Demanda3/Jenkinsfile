@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     stages {
+        stages {
         stage('SCM Checkout') {
             steps {
-                // Clonando o repositório público do GitHub
-                git 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+                git branch: 'main', credentialsId: 'jk-gh-tk', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
             }
         }
 
