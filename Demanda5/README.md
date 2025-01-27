@@ -50,7 +50,7 @@ docker-compose up -d
 1. Acesse "Configuration > Data Sources"
 2. Clique em "Add data source"
 3. Selecione "Prometheus"
-4. Configure a URL: http://prometheus:9090
+4. Configure a URL: http://demanda5_prometheus_1:9090
 5. Clique em "Save & Test"
 
 ### Importando Dashboards
@@ -72,6 +72,7 @@ Para hospedar em um serviço gratuito como o Render:
 2. Conecte seu repositório GitHub
 3. Crie um novo "Web Service" e configure as variáveis de ambiente necessárias
 4. O Render irá automaticamente construir e implantar sua aplicação
+5. Lembre de colocar no Root Directory: Demanda5/
 
 ## Expandindo o Monitoramento
 
