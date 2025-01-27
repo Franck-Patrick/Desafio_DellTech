@@ -13,8 +13,7 @@ pipeline {
         sh 'docker build -f Demanda3/Dockerfile -t webapp:$BUILD_NUMBER .'
     }
 }
-
-     
+  
 stage('Deploy Application') {
     steps {
         sh '''
