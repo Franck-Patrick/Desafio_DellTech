@@ -1,36 +1,32 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('SCM Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'jk-gh-tk', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+                // Clonando o repositório público do GitHub
+                git 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
             }
         }
 
         stage('Build Docker image') {
-    steps {
-        sh 'docker build -f Demanda3/Dockerfile -t webapp:$BUILD_NUMBER .'
-    }
-}
-  
-stage('Deploy Application') {
-    steps {
-        sh '''
-            docker run -d -p 3000:3000 --name webapp_ctr pkdu14/webapp:${BUILD_NUMBER}
-           '''
+            steps {
+                // Executando um container Docker em segundo plano
+                sh 'docker run -d --name my_container python:2.7'
             }
         }
-stage('Run Random Command in Container') {
+
+        stage('Execute Command in Container') {
             steps {
-                script {
-                    // Exemplo de comando aleatório, substitua por um comando que você deseja rodar
-                    def commands = ['ls', 'pwd', 'echo Hello World']
-                    def randomCommand = commands[new Random().nextInt(commands.size())]
-                    
-                    // Executando o comando aleatório no container
-                    sh "docker exec webapp_ctr ${randomCommand}"
-                }
+                // Executando um comando dentro do container em execução
+                sh 'docker exec my_container python -c "print(\'Hello from inside the container\')"'
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                // Executando um container na etapa de deploy (Nginx como exemplo)
+                sh 'docker run -d -p 8080:80 --name deploy_container nginx'
             }
         }
     }
