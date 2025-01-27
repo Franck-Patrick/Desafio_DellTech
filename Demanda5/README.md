@@ -18,14 +18,12 @@ Este projeto implementa um sistema de monitoramento usando Prometheus e Grafana 
 
 - Docker
 - Docker Compose
-- Node.js (para desenvolvimento local)
-
 ## Configuração Local
 
 1. Clone o repositório:
 ```bash
-git clone [URL_DO_REPOSITORIO]
-cd [NOME_DO_DIRETORIO]
+git clone https://github.com/Franck-Patrick/Desafio_DellTech.git
+cd Demanda5/
 ```
 
 2. Inicie os containers:
