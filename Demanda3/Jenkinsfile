@@ -1,8 +1,6 @@
 pipeline {
     agent any
-    environment {
-    DOCKERHUB_CREDENTIALS = credentials('jk-dh-tk')
-}
+    
     stages {
         stage('SCM Checkout') {
             steps {
@@ -22,12 +20,6 @@ pipeline {
             }
         }
        
-        stage('Push Image') {
-    steps {
-        sh 'docker push pkdu14/webapp:$BUILD_NUMBER'
-             }
-        }
-
 stage('Deploy Application') {
     steps {
         sh '''
