@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stages {
         stage('SCM Checkout') {
             steps {
                 git branch: 'main', credentialsId: 'jk-gh-tk', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
