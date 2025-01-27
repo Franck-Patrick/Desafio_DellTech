@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // Atualizando para usar seu repositório
+        // Definindo variáveis de ambiente
         DOCKER_IMAGE = 'node:16-alpine'
         DEPLOY_IMAGE = 'nginx:alpine'
         GIT_REPO = 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+        CONTAINER_NAME = 'app-container'
+        DEPLOY_CONTAINER = 'deploy-container'
     }
 
     stages {
@@ -16,88 +18,82 @@ pipeline {
                 
                 // Clona seu repositório
                 echo "Clonando repositório: ${GIT_REPO}"
-                git branch: 'main',  // Alterado para 'main' que é o padrão do GitHub moderno
+                git branch: 'main',
                     url: "${GIT_REPO}"
             }
         }
 
         stage('Build & Test in Docker') {
             steps {
-                script {
-                    // Executa comandos dentro do container Docker
-                    docker.image("${DOCKER_IMAGE}").inside {
-                        sh '''
-                            echo "Node.js Version:"
-                            node --version
-                            
-                            echo "NPM Version:"
-                            npm --version
-                            
-                            # Navega para o diretório da aplicação se necessário
-                            if [ -d "app" ]; then
-                                cd app
-                            fi
-                            
-                            echo "Instalando dependências..."
-                            if [ -f "package.json" ]; then
-                                npm install
-                                echo "Dependências instaladas com sucesso!"
-                            else
-                                echo "package.json não encontrado - pulando instalação de dependências"
-                            fi
-                        '''
-                    }
-                }
+                sh '''
+                    # Remove container se já existir
+                    docker rm -f ${CONTAINER_NAME} || true
+                    
+                    # Executa o container
+                    docker run -d --name ${CONTAINER_NAME} ${DOCKER_IMAGE}
+                    
+                    # Executa comandos no container
+                    docker exec ${CONTAINER_NAME} /bin/sh -c "
+                        echo 'Node.js Version:'
+                        node --version
+                        
+                        echo 'NPM Version:'
+                        npm --version
+                    "
+                    
+                    # Remove o container após uso
+                    docker rm -f ${CONTAINER_NAME}
+                '''
             }
         }
 
         stage('Custom Script') {
             steps {
-                script {
-                    // Executa um script personalizado dentro do container
-                    docker.image("${DOCKER_IMAGE}").inside {
-                        sh '''
-                            echo "Executando script personalizado..."
-                            
-                            # Criar um arquivo de log com informações do projeto
-                            echo "Pipeline executada em $(date)" > execution_log.txt
-                            echo "Repositório: Desafio_DellTech" >> execution_log.txt
-                            
-                            # Listar estrutura do projeto
-                            echo "Estrutura do projeto:" >> execution_log.txt
-                            ls -R >> execution_log.txt
-                            
-                            # Informações do sistema
-                            echo "Informações do sistema:" >> execution_log.txt
-                            uname -a >> execution_log.txt
-                            
-                            echo "Script concluído com sucesso!"
-                        '''
+                sh '''
+                    # Cria e executa container para script personalizado
+                    docker run --name ${CONTAINER_NAME} ${DOCKER_IMAGE} /bin/sh -c "
+                        echo 'Executando script personalizado...'
                         
-                        // Arquiva o arquivo de log como artefato
-                        archiveArtifacts artifacts: 'execution_log.txt', allowEmptyArchive: true
-                    }
-                }
+                        # Criar arquivo de log
+                        echo 'Pipeline executada em $(date)' > /tmp/execution_log.txt
+                        echo 'Repositório: Desafio_DellTech' >> /tmp/execution_log.txt
+                        
+                        # Informações do sistema
+                        echo 'Informações do sistema:' >> /tmp/execution_log.txt
+                        uname -a >> /tmp/execution_log.txt
+                        
+                        cat /tmp/execution_log.txt
+                    "
+                    
+                    # Copia o arquivo de log do container
+                    docker cp ${CONTAINER_NAME}:/tmp/execution_log.txt .
+                    
+                    # Remove o container
+                    docker rm -f ${CONTAINER_NAME}
+                '''
+                
+                // Arquiva o log
+                archiveArtifacts artifacts: 'execution_log.txt', allowEmptyArchive: true
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    // Executa um container para deploy
-                    docker.image("${DEPLOY_IMAGE}").withRun('-p 8080:80') { c ->
-                        // Aguarda o container iniciar
-                        sh 'sleep 10'
-                        
-                        echo "Container de deploy iniciado com ID: ${c.id}"
-                        
-                        // Verifica se o container está rodando
-                        sh "docker ps | grep ${c.id}"
-                        
-                        // Você pode adicionar verificações específicas do seu projeto aqui
-                        echo "Deploy concluído com sucesso!"
-                    }
-                }
+                sh '''
+                    # Remove container de deploy anterior se existir
+                    docker rm -f ${DEPLOY_CONTAINER} || true
+                    
+                    # Executa container de deploy
+                    docker run -d --name ${DEPLOY_CONTAINER} -p 8080:80 ${DEPLOY_IMAGE}
+                    
+                    # Verifica se o container está rodando
+                    docker ps | grep ${DEPLOY_CONTAINER}
+                    
+                    echo "Container de deploy iniciado com sucesso!"
+                    
+                    # Aguarda 10 segundos para garantir que o container iniciou
+                    sleep 10
+                '''
             }
         }
     }
@@ -105,6 +101,10 @@ pipeline {
     post {
         always {
             // Limpeza após a execução
+            sh '''
+                docker rm -f ${CONTAINER_NAME} || true
+                docker rm -f ${DEPLOY_CONTAINER} || true
+            '''
             cleanWs()
         }
         success {
