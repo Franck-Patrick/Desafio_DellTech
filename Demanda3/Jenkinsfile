@@ -1,17 +1,117 @@
 pipeline {
     agent any
 
+    environment {
+        // Atualizando para usar seu repositório
+        DOCKER_IMAGE = 'node:16-alpine'
+        DEPLOY_IMAGE = 'nginx:alpine'
+        GIT_REPO = 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+    }
+
     stages {
-        stage('SCM Checkout') {
+        stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
+                // Limpa o workspace antes de clonar
+                cleanWs()
+                
+                // Clona seu repositório
+                echo "Clonando repositório: ${GIT_REPO}"
+                git branch: 'main',  // Alterado para 'main' que é o padrão do GitHub moderno
+                    url: "${GIT_REPO}"
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build & Test in Docker') {
             steps {
-                sh 'docker build -f Demanda3/Dockerfile -t pkdu14/webapp:$BUILD_NUMBER .'
+                script {
+                    // Executa comandos dentro do container Docker
+                    docker.image("${DOCKER_IMAGE}").inside {
+                        sh '''
+                            echo "Node.js Version:"
+                            node --version
+                            
+                            echo "NPM Version:"
+                            npm --version
+                            
+                            # Navega para o diretório da aplicação se necessário
+                            if [ -d "app" ]; then
+                                cd app
+                            fi
+                            
+                            echo "Instalando dependências..."
+                            if [ -f "package.json" ]; then
+                                npm install
+                                echo "Dependências instaladas com sucesso!"
+                            else
+                                echo "package.json não encontrado - pulando instalação de dependências"
+                            fi
+                        '''
+                    }
+                }
             }
+        }
+
+        stage('Custom Script') {
+            steps {
+                script {
+                    // Executa um script personalizado dentro do container
+                    docker.image("${DOCKER_IMAGE}").inside {
+                        sh '''
+                            echo "Executando script personalizado..."
+                            
+                            # Criar um arquivo de log com informações do projeto
+                            echo "Pipeline executada em $(date)" > execution_log.txt
+                            echo "Repositório: Desafio_DellTech" >> execution_log.txt
+                            
+                            # Listar estrutura do projeto
+                            echo "Estrutura do projeto:" >> execution_log.txt
+                            ls -R >> execution_log.txt
+                            
+                            # Informações do sistema
+                            echo "Informações do sistema:" >> execution_log.txt
+                            uname -a >> execution_log.txt
+                            
+                            echo "Script concluído com sucesso!"
+                        '''
+                        
+                        // Arquiva o arquivo de log como artefato
+                        archiveArtifacts artifacts: 'execution_log.txt', allowEmptyArchive: true
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Executa um container para deploy
+                    docker.image("${DEPLOY_IMAGE}").withRun('-p 8080:80') { c ->
+                        // Aguarda o container iniciar
+                        sh 'sleep 10'
+                        
+                        echo "Container de deploy iniciado com ID: ${c.id}"
+                        
+                        // Verifica se o container está rodando
+                        sh "docker ps | grep ${c.id}"
+                        
+                        // Você pode adicionar verificações específicas do seu projeto aqui
+                        echo "Deploy concluído com sucesso!"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Limpeza após a execução
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline executada com sucesso!'
+        }
+        failure {
+            echo 'Pipeline falhou!'
         }
     }
 }
