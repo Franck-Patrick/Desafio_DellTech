@@ -97,7 +97,7 @@ pipeline {
                     docker pull ${DEPLOY_IMAGE}
                     
                     # Executa container de deploy
-                    docker run -d --name ${DEPLOY_CONTAINER} -p 8080:80 ${DEPLOY_IMAGE}
+                    docker run -d --name ${DEPLOY_CONTAINER} -p 8081:80 ${DEPLOY_IMAGE}
                     
                     # Verifica se o container está rodando
                     docker ps | grep ${DEPLOY_CONTAINER}
