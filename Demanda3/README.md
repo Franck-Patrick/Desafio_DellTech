@@ -17,11 +17,7 @@ Este projeto contém um Jenkinsfile que demonstra a integração entre Jenkins e
    - Pipeline
    - Workspace Cleanup
 
-2. Configure as credenciais do Docker Hub (se necessário):
-   - Acesse "Manage Jenkins" > "Manage Credentials"
-   - Adicione suas credenciais do Docker Hub
-
-3. Certifique-se que o usuário Jenkins está no grupo docker:
+2. Certifique-se que o usuário Jenkins está no grupo docker:
 ```bash
 sudo usermod -aG docker jenkins
 ```
