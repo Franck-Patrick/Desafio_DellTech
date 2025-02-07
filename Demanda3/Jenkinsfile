@@ -8,8 +8,6 @@ pipeline {
         GIT_REPO = 'https://github.com/Franck-Patrick/Desafio_DellTech.git'
         CONTAINER_NAME = 'app-container'
         DEPLOY_CONTAINER = 'deploy-container'
-        // Usando as credenciais do Docker Hub configuradas no Jenkins
-        DOCKER_HUB_CREDENTIALS = credentials('jk-dh-tk')
     }
 
     stages {
@@ -22,19 +20,6 @@ pipeline {
                 echo "Clonando repositório: ${GIT_REPO}"
                 git branch: 'main',
                     url: "${GIT_REPO}"
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                // Login no Docker Hub usando as credenciais configuradas
-                script {
-                    if (env.DOCKER_HUB_CREDENTIALS) {
-                        sh '''
-                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                        '''
-                    }
-                }
             }
         }
 
